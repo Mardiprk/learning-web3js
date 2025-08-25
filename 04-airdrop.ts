@@ -16,6 +16,9 @@ async function airdropSOL(){
 
     const connection = new Connection(clusterApiUrl("devnet"), "confirmed");
 
+    const balBefore = await connection.getBalance(wallet.publicKey);
+    console.log("Balance before {SOL}", balBefore / LAMPORTS_PER_SOL);
+    
     //airdrop 1 SOL
     console.log("⏳ Requestion Airdrop 1 SOL");
     const sig = await connection.requestAirdrop(wallet.publicKey, 1 * LAMPORTS_PER_SOL);
@@ -23,8 +26,8 @@ async function airdropSOL(){
     await connection.confirmTransaction(sig, "confirmed");
     console.log("🍀 Airdrop Confirmed:", sig);
 
-    const bal = await connection.getBalance(wallet.publicKey);
-    console.log("Balance {SOL}", bal / LAMPORTS_PER_SOL);
+    const balAfter = await connection.getBalance(wallet.publicKey);
+    console.log("Balance {SOL}", balAfter / LAMPORTS_PER_SOL);
 }
 
 airdropSOL();
