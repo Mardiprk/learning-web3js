@@ -1,18 +1,13 @@
-import { Connection, clusterApiUrl } from "@solana/web3.js";
+import {createSolanaRpc,devnet} from "@solana/kit";
 
 async function connectionDemonstration(){
-    console.log("Starting SOL connection");
+    const rpc = createSolanaRpc(devnet("https://api.devnet.solana.com"));
 
-    const devnetConnection = new Connection(clusterApiUrl("devnet"), "confirmed");
-    console.log("Connected to Devnet: ", devnetConnection.rpcEndpoint);
+    const slot = await rpc.getSlot().send();
+    console.log("📍 Current Slot:", slot);
 
-    try{
-        const slot = await devnetConnection.getSlot();
-        console.log("Current Slot:", slot);
-
-    }catch(error){
-        console.error("❌ Error connecting to Solana:', error");
-    }
+    const blockhash = await rpc.getLatestBlockhash().send();
+    console.log("📍 Latest Blockhash:", blockhash);
 }
 
 connectionDemonstration();
