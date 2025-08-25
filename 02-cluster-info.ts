@@ -16,7 +16,8 @@ async function exploreCLuster(){
 
         console.log("Total Supply: ", supply.value.total / 1e9, 'SOL');
         console.log("Circulating Supply: ", supply.value.circulating / 1e9, 'SOL');
-        console.log("Non-circulating:", supply.value.nonCirculating / 1e9, 'SOL' );
+        console.log("Non-Circulating Supply: ", supply.value.nonCirculating / 1e9, 'SOL');
+
     }catch(err){
         console.error("Error", err);
     }
