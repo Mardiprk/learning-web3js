@@ -30,5 +30,7 @@ async function main(){
     console.log("Signature Valid?", isValid);
 
 }
+const a = 10;
+
 
 main().catch(console.error);

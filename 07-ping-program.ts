@@ -28,14 +28,18 @@ async function main() {
     fs.readFileSync("target/idl/ping_program.json", "utf8")
   );
 
-  const program = new anchor.Program(idl, PROGRAM_ID, provider);
+  const program = new anchor.Program(idl as anchor.Idl, PROGRAM_ID, provider);
 
-  const tx = await program.methods.ping().rpc();
-  console.log("✅ Ping sent! Transaction Signature:", tx);
-  console.log(
-    "Explorer link:",
-    `https://explorer.solana.com/tx/${tx}?cluster=devnet`
-  );
+  try {
+    const tx = await program.methods.ping().rpc();
+    console.log("✅ Ping sent! Transaction Signature:", tx);
+    console.log(
+      "Explorer link:",
+      `https://explorer.solana.com/tx/${tx}?cluster=devnet`
+    );
+  } catch (err) {
+    console.error("❌ Error sending ping:", err);
+  }
 }
 
 main().catch(console.error);
