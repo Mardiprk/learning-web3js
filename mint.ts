@@ -1,59 +1,67 @@
 import {
   Connection,
   Keypair,
-  LAMPORTS_PER_SOL,
-  clusterApiUrl,
-  PublicKey,
   sendAndConfirmTransaction,
+  SystemProgram,
+  Transaction,
+  clusterApiUrl
 } from "@solana/web3.js";
 
 import {
-  createMint,
-  getOrCreateAssociatedTokenAccount,
-  mintTo,
-  transfer,
+  createInitializeMint2Instruction,
+  MINT_SIZE,
+  getMinimumBalanceForRentExemptMint,
+  TOKEN_PROGRAM_ID,
 } from "@solana/spl-token";
 
-(async() => {
-  const connection = new Connection(clusterApiUrl("devnet"),"confirmed");
-  const payer = Keypair.generate();
+(async () => {
+  const connection = new Connection(clusterApiUrl("devnet"), "confirmed");
 
-  const airdropSig = await connection.requestAirdrop(
-    payer.publicKey,
-    2 * LAMPORTS_PER_SOL
-  );
+  // Fee payer (will pay for tx + rent)
+  const feePayer = Keypair.generate();
 
+  // Airdrop SOL to fee payer
+  const airdropSig = await connection.requestAirdrop(feePayer.publicKey, 2e9); // 2 SOL
   await connection.confirmTransaction(airdropSig);
 
-  console.log("Payer:", payer.publicKey.toBase58());
+  // Mint account
+  const mint = Keypair.generate();
 
-  const mint = await createMint(
-    connection,
-    payer,
-    payer.publicKey,
-    null,
-    6,
+  // Rent exemption cost
+  const mintRent = await getMinimumBalanceForRentExemptMint(connection);
+
+  // Instruction: Create account
+  const createAccountInstruction = SystemProgram.createAccount({
+    fromPubkey: feePayer.publicKey,
+    newAccountPubkey: mint.publicKey,
+    space: MINT_SIZE,
+    lamports: mintRent,
+    programId: TOKEN_PROGRAM_ID,
+  });
+
+  // Instruction: Initialize Mint
+  const initializeMintInstruction = createInitializeMint2Instruction(
+    mint.publicKey,    // mint pubkey
+    6,                 // decimals
+    feePayer.publicKey,// mint authority
+    null,              // freeze authority
+    TOKEN_PROGRAM_ID
   );
 
-  console.log("Mint Address:", mint.toBase58());
-
-  const payerAta = await getOrCreateAssociatedTokenAccount(
-    connection,
-    payer,
-    mint,
-    payer.publicKey,
+  // Transaction
+  const transaction = new Transaction().add(
+    createAccountInstruction,
+    initializeMintInstruction
   );
 
-  console.log("Payer ATA:", payerAta.address.toBase58());
-
-
-  await mintTo(
+  // Signers = feePayer (payer) + mint (new account)
+  const signature = await sendAndConfirmTransaction(
     connection,
-    payer,
-    mint,
-    payerAta.address,
-    payer.publicKey,
-    1_000_000_000 // 1000 tokens (with 6 decimals = 1000.000000)
+    transaction,
+    [feePayer, mint]
   );
-  console.log("Minted 1000 tokens to payer ATA!");
+
+  console.log(
+    `Mint created! Check out your TX here: https://explorer.solana.com/tx/${signature}?cluster=devnet`
+  );
 })();
