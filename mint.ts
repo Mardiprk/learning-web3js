@@ -17,7 +17,6 @@ import {
 (async () => {
   const connection = new Connection(clusterApiUrl("devnet"), "confirmed");
 
-  // Fee payer (will pay for tx + rent)
   const feePayer = Keypair.generate();
 
   // Airdrop SOL to fee payer
