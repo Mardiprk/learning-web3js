@@ -1,10 +1,19 @@
-import { Keypair} from "@solana/web3.js";
+import { createMint } from "@solana/spl-token";
+import { clusterApiUrl, Connection, Keypair} from "@solana/web3.js";
 
 async function newWallet(){
     const keypair = Keypair.generate();
+    const connection = new Connection(clusterApiUrl("devnet"), "confirmed");
 
-    console.log("Public key:", keypair.publicKey.toBase58());
-    console.log("Secret Key:", keypair.secretKey);
+    const mint = await createMint(
+        connection,
+        keypair,
+        keypair.publicKey,
+        null,
+        6
+    );
+
+    console.log("Mint", mint.toBase58());
 }
 
 newWallet();
