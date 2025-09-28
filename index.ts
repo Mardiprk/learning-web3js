@@ -1,23 +1,15 @@
-import { createMint } from "@solana/spl-token";
+import { createMint, getAssociatedTokenAddress, getOrCreateAssociatedTokenAccount, mintTo } from "@solana/spl-token";
 import { clusterApiUrl, Connection, Keypair, LAMPORTS_PER_SOL, sendAndConfirmTransaction } from "@solana/web3.js";
+import fs from "fs";
 
-async function newWallet() {
-  const keypair = Keypair.generate();
+async function index() {
   const connection = new Connection(clusterApiUrl("devnet"), "confirmed");
 
-  const airdropSignature = await connection.requestAirdrop(keypair.publicKey, 2 * LAMPORTS_PER_SOL);
-  await connection.confirmTransaction(airdropSignature);
+  const secretKeyString = fs.readFileSync("/home/prakash/.config/solana/id.json", "utf-8");
+  const secretKey = Uint8Array.from(JSON.parse(secretKeyString));
+  const payer = Keypair.fromSecretKey(secretKey);
 
-  const mint = await createMint(
-    connection,
-    keypair,
-    keypair.publicKey,
-    null,
-    6
-  );
-
-  console.log("Wallet:", keypair.publicKey);
-  console.log("Mint:", mint.toBase58());
+  console.log("wallet:", payer.publicKey.toBase58());
 }
 
-newWallet();
+index();
