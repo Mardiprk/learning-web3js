@@ -68,7 +68,6 @@ async function index() {
   const ataInfo = await getAccount(connection, ata.address, "confirmed", TOKEN_2022_PROGRAM_ID);
   console.log("💰 Your Balance:", ataInfo.amount.toString());
 
-  // 4️⃣ Create ATA for recipient
   const recipient = Keypair.generate();
   const recipientAta = await getOrCreateAssociatedTokenAccount(
     connection,
@@ -81,14 +80,13 @@ async function index() {
     TOKEN_2022_PROGRAM_ID,
   );
 
-  // 5️⃣ Transfer 25 tokens to recipient
   await transfer(
     connection,
     payer,
     ata.address,
     recipientAta.address,
     payer,
-    25_000_000, // 25 tokens
+    25_000_000, 
     [],
     undefined,
     TOKEN_2022_PROGRAM_ID,
