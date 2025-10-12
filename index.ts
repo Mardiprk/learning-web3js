@@ -15,7 +15,6 @@ import {
 
 import fs from "fs";
 
-// Load your existing wallet
 const secretKeyString = fs.readFileSync("/home/prakash/.config/solana/id.json", "utf-8");
 const secretKey = Uint8Array.from(JSON.parse(secretKeyString));
 const payer = Keypair.fromSecretKey(secretKey);
