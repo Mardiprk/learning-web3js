@@ -1,99 +1,20 @@
-import {
-  createMint,
-  getAccount,
-  getOrCreateAssociatedTokenAccount,
-  mintTo,
-  TOKEN_2022_PROGRAM_ID,
-  transfer,
-} from "@solana/spl-token";
+import { address, createSolanaRpc, generateKeyPair } from "@solana/kit";
 
-import {
-  clusterApiUrl,
-  Connection,
-  Keypair,
-} from "@solana/web3.js";
+async function main() {
+  const rpc = createSolanaRpc("https://api.devnet.solana.com");
 
-import fs from "fs";
+  const keypair = await generateKeyPair();
+  const newWallet = keypair.publicKey;
 
-const secretKeyString = fs.readFileSync("/home/prakash/.config/solana/id.json", "utf-8");
-const secretKey = Uint8Array.from(JSON.parse(secretKeyString));
-const payer = Keypair.fromSecretKey(secretKey);
+  const wallet = address("5NpeRLioZMTEZ6pcAtCvH3LQ9RaYmBBSu48Y4EXmkuXg");
+  
+  // Fetch balances
+  const { value: balance1 } = await rpc.getBalance(wallet).send();
+  const { value: balance2 } = await rpc.getBalance(newWallet).send();
 
-async function index() {
-  const connection = new Connection(clusterApiUrl("devnet"), "confirmed");
-
-  console.log("wallet:", payer.publicKey.toBase58());
-
-  // 1️⃣ Create Token-2022 Mint
-  const mint = await createMint(
-    connection,
-    payer,
-    payer.publicKey,
-    null,
-    6,
-    undefined,
-    undefined,
-    TOKEN_2022_PROGRAM_ID,
-  );
-  console.log("✅ Created Token-2022 mint:", mint.toBase58());
-
-  // 2️⃣ Create ATA for yourself
-  const ata = await getOrCreateAssociatedTokenAccount(
-    connection,
-    payer,
-    mint,
-    payer.publicKey,
-    false,
-    "confirmed",
-    undefined,
-    TOKEN_2022_PROGRAM_ID,    
-  );
-  console.log("✅ Your ATA:", ata.address.toBase58());
-
-  // 3️⃣ Mint tokens to your ATA
-  await mintTo(
-    connection,
-    payer,
-    mint,
-    ata.address,
-    payer,            // authority
-    100_000_000,      // 100 tokens (since decimals = 6)
-    [],
-    undefined,
-    TOKEN_2022_PROGRAM_ID
-  );
-  console.log("✅ Minted 100 tokens to your ATA");
-
-  const ataInfo = await getAccount(connection, ata.address, "confirmed", TOKEN_2022_PROGRAM_ID);
-  console.log("💰 Your Balance:", ataInfo.amount.toString());
-
-  const recipient = Keypair.generate();
-  const recipientAta = await getOrCreateAssociatedTokenAccount(
-    connection,
-    payer,
-    mint,
-    recipient.publicKey,
-    false,
-    "confirmed",
-    undefined,
-    TOKEN_2022_PROGRAM_ID,
-  );
-
-  await transfer(
-    connection,
-    payer,
-    ata.address,
-    recipientAta.address,
-    payer,
-    25_000_000, 
-    [],
-    undefined,
-    TOKEN_2022_PROGRAM_ID,
-  );
-  console.log("✅ Transferred 25 tokens to:", recipient.publicKey.toBase58());
-
-  const recipientInfo = await getAccount(connection, recipientAta.address, "confirmed", TOKEN_2022_PROGRAM_ID);
-  console.log("🎉 Recipient Balance:", recipientInfo.amount.toString());
+  console.log(`Random Wallet Address: ${newWallet.toString()}`);
+  console.log(`Random Wallet Balance: ${balance2} lamports`);
+  console.log(`Existing Wallet Balance: ${balance1} lamports`);
 }
 
-index();
+main().catch(console.error);
